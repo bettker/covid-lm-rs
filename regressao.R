@@ -1,48 +1,65 @@
 library(ggplot2)
-setwd("C:\\Users\\rafae\\Documents\\JAI 2020\\covid\\output")
+#setwd("absolute path to output folder")
 
-regiao = 0
+# Regiao para analise
+regiao <- 0
 
-dataset <- read.csv(paste("sum_regiao_", regiao, ".txt", sep=""))
+# Carrega dataset, atribui variaveis x e y
+dataset <- read.csv(paste("sum_regiao_", regiao, ".txt", sep = ""))
 
 x <- dataset$semana
 y <- dataset$novos_casos
-z <- dataset$bandeira
 
-#bandeira <- c(paste(z[0*7+1]), paste(z[1*7+1]), paste(z[2*7+1]), paste(z[3*7+1]), paste(z[4*7+1]), paste(z[5*7+1]), paste(z[6*7+1]), paste(z[7*7+1]), paste(z[8*7+1]), paste(z[9*7+1]), paste(z[10*7+1]), paste(z[11*7+1]), paste(z[12*7+1]), paste(z[13*7+1]), paste(z[14*7+1]), paste(z[15*7+1]))
+# Separa infos para plot de bandeiras
+n <- length(dataset$semana)
+xmin <- dataset$semana[1:n]
+xmax <- c(dataset$semana[2:n], dataset$semana[n]) # Força ter n elementos
+ymin <- rep(min(y), n)
+ymax <- rep(max(y), n)
+Risco <- bandeira[1:n]
 
-modelo <- lm(x ~ y, data=dataset)
+# Obtem as bandeiras das semanas
+bandeira <- dataset$bandeira[seq(1, length(dataset$bandeira), 7)]
 
-qplot(x,
-      y,
-      data = modelo,
-      geom = c("point", "smooth"),
-      xlab = "Semana",
-      ylab = "Novos casos",
-      main = paste("Casos de coronav�rus (R", regiao, ")", sep="")) +
-# Plota bandeira de cada semana
-  geom_rect(aes(xmin = 0, xmax = 1, ymin = -20, ymax = -10, fill = paste(z[0*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 1, xmax = 2, ymin = -20, ymax = -10, fill = paste(z[1*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 2, xmax = 3, ymin = -20, ymax = -10, fill = paste(z[2*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 3, xmax = 4, ymin = -20, ymax = -10, fill = paste(z[3*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 4, xmax = 5, ymin = -20, ymax = -10, fill = paste(z[4*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 5, xmax = 6, ymin = -20, ymax = -10, fill = paste(z[5*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 6, xmax = 7, ymin = -20, ymax = -10, fill = paste(z[6*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 7, xmax = 8, ymin = -20, ymax = -10, fill = paste(z[7*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 8, xmax = 9, ymin = -20, ymax = -10, fill = paste(z[8*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 9, xmax = 10, ymin = -20, ymax = -10, fill = paste(z[9*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 10, xmax = 11, ymin = -20, ymax = -10, fill = paste(z[10*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 11, xmax = 12, ymin = -20, ymax = -10, fill = paste(z[11*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 12, xmax = 13, ymin = -20, ymax = -10, fill = paste(z[12*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 13, xmax = 14, ymin = -20, ymax = -10, fill = paste(z[13*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 14, xmax = 15, ymin = -20, ymax = -10, fill = paste(z[14*7+1])), alpha = .2) +
-  geom_rect(aes(xmin = 15, xmax = 16, ymin = -20, ymax = -10, fill = paste(z[15*7+1])), alpha = .2) +
-  #scale_fill_manual(values = alpha(c("yellow", "orange", "red", "black"), 0.2)) +
-  scale_fill_manual(values = alpha(c("orange", "red", "black"), 0.2)) +
-  #scale_fill_manual(values = alpha(c("yellow", "red"), 0.2)) +
-  theme_bw()
+bandeira <- dataset$bandeira
+bandeira <- replace(bandeira, bandeira == 0, "Baixo")
+bandeira <- replace(bandeira, bandeira == 1, "Médio")
+bandeira <- replace(bandeira, bandeira == 2, "Alto")
+bandeira <- replace(bandeira, bandeira == 3, "Altíssimo")
 
-ggsave(paste("plots\\Casos de coronav�rus (R", regiao, ").png", sep=""),
+# Ajusta cores para plot das bandeiras
+cores <- c()
+if ("Altíssimo" %in% Risco) {
+  cores <- c(cores, "black")
+}
+if ("Alto" %in% Risco) {
+  cores <- c(cores, "red")
+}
+if ("Baixo" %in% Risco) {
+  cores <- c(cores, "yellow")
+}
+if ("Médio" %in% Risco) {
+  cores <- c(cores, "orange")
+}
+
+# Cria o modelo de regressao
+modelo <- lm(x ~ y, data = dataset)
+
+# Plota
+ggplot() +
+  # Background: cor das bandeiras
+  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = Risco), alpha = .75) +
+  scale_fill_manual(values = cores) +
+  # Modelo
+  geom_point(data = modelo, aes(x = dataset$semana, y = dataset$novos_casos), colour = "black") + 
+  geom_smooth(data = modelo, aes(x = dataset$semana, y = dataset$novos_casos), fill = "darkblue", colour = "darkblue", size=1.2) +
+  # Labels
+  xlab("Semana") + ylab("Novos casos") + ggtitle(paste("Casos de coronavírus (R", regiao, ")", sep = ""))
+
+# Salva imagem
+ggsave(paste("plots\\Casos de coronavírus (R", regiao, ").png", sep = ""),
        device = "png",
        width = 8,
        height = 5)
+
+print(paste("Gráfico de R", regiao, " salvo.", sep = ""))
