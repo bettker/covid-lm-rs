@@ -1,5 +1,5 @@
 library(ggplot2)
-#setwd("absolute path to output folder")
+setwd("C:\\absolute\\path\\to\\output\\folder")
 
 # Regiao para analise
 regiao <- 0
@@ -10,14 +10,6 @@ dataset <- read.csv(paste("sum_regiao_", regiao, ".txt", sep = ""))
 x <- dataset$semana
 y <- dataset$novos_casos
 
-# Separa infos para plot de bandeiras
-n <- length(dataset$semana)
-xmin <- dataset$semana[1:n]
-xmax <- c(dataset$semana[2:n], dataset$semana[n]) # Força ter n elementos
-ymin <- rep(min(y), n)
-ymax <- rep(max(y), n)
-Risco <- bandeira[1:n]
-
 # Obtem as bandeiras das semanas
 bandeira <- dataset$bandeira[seq(1, length(dataset$bandeira), 7)]
 
@@ -26,6 +18,14 @@ bandeira <- replace(bandeira, bandeira == 0, "Baixo")
 bandeira <- replace(bandeira, bandeira == 1, "Médio")
 bandeira <- replace(bandeira, bandeira == 2, "Alto")
 bandeira <- replace(bandeira, bandeira == 3, "Altíssimo")
+
+# Separa infos para plot de bandeiras
+n <- length(dataset$semana)
+xmin <- dataset$semana[1:n]
+xmax <- c(dataset$semana[2:n], dataset$semana[n]) # Força ter n elementos
+ymin <- rep(min(y), n)
+ymax <- rep(max(y), n)
+Risco <- bandeira[1:n]
 
 # Ajusta cores para plot das bandeiras
 cores <- c()
